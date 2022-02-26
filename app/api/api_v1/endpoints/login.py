@@ -5,10 +5,10 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.security import create_access_token
-from app.crud.auth import create_user
 from app.crud.auth import read_user_by_email, authenticate_user
 from app.db.session import Base, engine, get_db
 from app.schemas.user import UserCreate
+from app.crud.user import crud_user
 
 Base.metadata.create_all(bind=engine)
 
@@ -20,7 +20,7 @@ def post(user: UserCreate, db: Session = Depends(get_db)):
     db_user = read_user_by_email(db, email=user.email)
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
-    return create_user(db=db, user=user)
+    return crud_user.create(db=db, obj_in=user)
 
 
 @router.post("/login/access-token")
