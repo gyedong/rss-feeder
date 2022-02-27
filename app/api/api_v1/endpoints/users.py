@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Body, HTTPException
 from fastapi.encoders import jsonable_encoder
 from pydantic.networks import EmailStr
 
-from app.api.depends import get_current_active_user
+from app.api.depends import get_current_active_user, get_current_active_superuser
 from app.models.user import User
 from app.schemas.user import UserRead, UserUpdate
 from app.api.depends import get_db
@@ -34,4 +34,10 @@ def update_user_me(*, db: Session = Depends(get_db), password: str = Body(None),
         else:
             user_in.email = email
     user = crud_user.update(db, db_obj=current_user, obj_in=user_in)
+    return user
+
+
+@router.get("/{user_id}", response_model=UserRead, response_model_exclude={"password"})
+def read_user_by_id(user_id: int, current_user: User = Depends(get_current_active_superuser), db: Session = Depends(get_db)) -> Any:
+    user = crud_user.get(db, id=user_id)
     return user
